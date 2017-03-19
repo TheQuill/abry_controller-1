@@ -7,7 +7,7 @@
 
 #include <inttypes.h>
 #include "utility/w5100.h"
-#include "IPAddress.h"
+#include "cores/IPAddress.h"
 #include "EthernetClient.h"
 #include "EthernetServer.h"
 #include "Dhcp.h"
@@ -17,6 +17,7 @@
 class EthernetClass {
 private:
   IPAddress _dnsServerAddress;
+
   //DhcpClass* _dhcp;
 public:
   static uint8_t _state[MAX_SOCK_NUM];
@@ -36,11 +37,11 @@ public:
   // Initialize the Ethernet shield to use the provided MAC address and gain the rest of the
   // configuration through DHCP.
   // Returns 0 if the DHCP configuration failed, and 1 if it succeeded
-  int begin(uint8_t *mac_address);
-  void begin(uint8_t *mac_address, IPAddress local_ip);
-  void begin(uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server);
-  void begin(uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway);
-  void begin(uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway, IPAddress subnet);
+  int begin(SPI_HandleTypeDef* handle, uint8_t *mac_address);
+  void begin(SPI_HandleTypeDef* handle, uint8_t *mac_address, IPAddress local_ip);
+  void begin(SPI_HandleTypeDef* handle, uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server);
+  void begin(SPI_HandleTypeDef* handle, uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway);
+  void begin(SPI_HandleTypeDef* handle, uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway, IPAddress subnet);
 
 #endif
   

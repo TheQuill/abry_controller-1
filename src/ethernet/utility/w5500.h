@@ -141,10 +141,13 @@ public:
   static const uint8_t RAW  = 255;
 };
 
+static SPI_HandleTypeDef* SPIhandle;
+
+
 class W5500Class {
 
 public:
-  void init();
+  void init(SPI_HandleTypeDef* handle);
 
   /**
    * @brief	This function is being used for copy the data form Receive buffer of the chip to application buffer.

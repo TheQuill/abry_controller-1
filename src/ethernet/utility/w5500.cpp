@@ -10,7 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "utility/w5100.h"
+#include "w5100.h"
+#include "w5500.h"
 #if defined(W5500_ETHERNET_SHIELD)
 
 // W5500 controller instance
@@ -19,29 +20,9 @@ W5500Class W5100;
 #define SPI_CS 10
 #define STM32_SPI_CS PA4
 
-void W5500Class::init(void)
+void W5500Class::init(SPI_HandleTypeDef* handle)
 {
-    delay(1000);
-
-#if defined(ARDUINO_ARCH_AVR)
-  initSS();
-  SPI.begin();
-#elif defined (__STM32F1__)
-  pinMode(STM32_SPI_CS, OUTPUT);
-  SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
-  pinMode(STM32_SPI_CS, OUTPUT);
-#else
-  SPI.begin(SPI_CS);
-  // Set clock to 4Mhz (W5100 should support up to about 14Mhz)
-//  SPI.setClockDivider(SPI_CS, 21);
-//  SPI.setClockDivider(SPI_CS, 6); // 14 Mhz, ok  
-//  SPI.setClockDivider(SPI_CS, 3); // 28 Mhz, ok 
-  SPI.setClockDivider(SPI_CS, 2); // 42 Mhz, ok 
-  SPI.setDataMode(SPI_CS, SPI_MODE0);
-#endif
+  SPIhandle = handle;
   write(0x00, 0x05, 128); // Software reset the W5500 chip
   for (int i=0; i<MAX_SOCK_NUM; i++) {
     uint8_t cntl_byte = (0x0C + (i<<5));
@@ -129,10 +110,14 @@ uint8_t W5500Class::write(uint16_t _addr, uint8_t _cb, uint8_t _data)
   SPI.transfer(_data);
   digitalWrite(STM32_SPI_CS, HIGH);
 #else
-  SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
-  SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
-  SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
-  SPI.transfer(SPI_CS, _data);
+
+//  SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
+//  SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_addr)), 2, 200);
+//  SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_cb)), 1, 200);
+//  SPI.transfer(SPI_CS, _data);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_data)), 1, 200);
 #endif    
     return 1;
 }
@@ -159,13 +144,16 @@ uint16_t W5500Class::write(uint16_t _addr, uint8_t _cb, const uint8_t *_buf, uin
   digitalWrite(STM32_SPI_CS, HIGH);
 #else
   uint16_t i;
-  SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
-  SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
-  SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
-  for (i=0; i<_len-1; i++){
-    SPI.transfer(SPI_CS, _buf[i], SPI_CONTINUE);
-  }
-	SPI.transfer(SPI_CS, _buf[i]);
+//  SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
+//  SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_addr)), 2, 200);
+//  SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_cb)), 1, 200);
+//  for (i=0; i<_len-1; i++){
+//    SPI.transfer(SPI_CS, _buf[i], SPI_CONTINUE);
+//  }
+//  SPI.transfer(SPI_CS, _buf[i]);
+  HAL_SPI_Transmit(SPIhandle, (unsigned char *)_buf, _len, 200);
 
 #endif    
     return _len;
@@ -188,10 +176,13 @@ uint8_t W5500Class::read(uint16_t _addr, uint8_t _cb)
   uint8_t _data = SPI.transfer(0);
   digitalWrite(STM32_SPI_CS, HIGH);
 #else
-    SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
-    SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
-    SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
-    uint8_t _data = SPI.transfer(SPI_CS, 0);
+//    SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
+//    SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
+    HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_addr)), 2, 200);
+//    SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
+    HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_cb)), 1, 200);
+    uint8_t _data;
+    _data = HAL_SPI_Receive(SPIhandle, &_data, 1, 200);
 #endif    
     return _data;
 }
@@ -218,13 +209,17 @@ uint16_t W5500Class::read(uint16_t _addr, uint8_t _cb, uint8_t *_buf, uint16_t _
   digitalWrite(STM32_SPI_CS, HIGH);
 #else
     uint16_t i;
-    SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
-    SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
-    SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
-  for (i=0; i<_len-1; i++){
-    _buf[i] = SPI.transfer(SPI_CS, 0, SPI_CONTINUE);
-  }
-    _buf[_len-1] = SPI.transfer(SPI_CS, 0);
+//    SPI.transfer(SPI_CS, _addr >> 8, SPI_CONTINUE);
+    //    SPI.transfer(SPI_CS, _addr & 0xFF, SPI_CONTINUE);
+    HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_addr)), 2, 200);
+//    SPI.transfer(SPI_CS, _cb, SPI_CONTINUE);
+    HAL_SPI_Transmit(SPIhandle, (unsigned char *)(&(_cb)), 1, 200);
+//  for (i=0; i<_len-1; i++){
+//    _buf[i] = SPI.transfer(SPI_CS, 0, SPI_CONTINUE);
+//  }
+//  _buf[_len-1] = SPI.transfer(SPI_CS, 0);
+  HAL_SPI_Receive(SPIhandle, (unsigned char *)(_buf), _len, 200);
+
 	    
 
 #endif    

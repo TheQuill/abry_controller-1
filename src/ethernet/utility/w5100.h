@@ -10,7 +10,7 @@
 #ifndef	W5100_H_INCLUDED
 #define	W5100_H_INCLUDED
 
-#include <SPI.h>
+#include <stm32f1xx_hal_spi.h>
 
 typedef uint8_t SOCKET;
 
@@ -20,7 +20,7 @@ typedef uint8_t SOCKET;
 
 #if defined(W5500_ETHERNET_SHIELD)
 //#define WIZ550io_WITH_MACADDRESS // Use assigned MAC address of WIZ550io
-#include "utility/w5500.h"
+#include "w5500.h"
 #endif
 
 #if defined(W5200_ETHERNET_SHIELD)

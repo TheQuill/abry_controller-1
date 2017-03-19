@@ -5,11 +5,11 @@
 #include "utility/w5100.h"
 #include "EthernetUdp.h"
 #include "utility/util.h"
+#include "cores/wirish_time.h"
 
 #include "Dns.h"
 #include <string.h>
 //#include <stdlib.h>
-#include "Arduino.h"
 
 
 #define SOCKET_NONE	255
@@ -83,7 +83,7 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
                 }
                 else
                 {
-                    aResult[segment] = (byte)segmentValue;
+                    aResult[segment] = (uint8_t)segmentValue;
                     segment++;
                     segmentValue = 0;
                 }
@@ -105,7 +105,7 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
         }
         else
         {
-            aResult[segment] = (byte)segmentValue;
+            aResult[segment] = (uint8_t)segmentValue;
             return 1;
         }
     }

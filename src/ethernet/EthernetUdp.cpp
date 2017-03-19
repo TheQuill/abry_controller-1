@@ -29,7 +29,6 @@
 #include "utility/w5100.h"
 #include "utility/socket.h"
 #include "Ethernet_STM.h"
-#include "Udp.h"
 #include "Dns.h"
 
 /* Constructor */

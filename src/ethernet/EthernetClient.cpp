@@ -1,11 +1,11 @@
 #include "utility/w5100.h"
 #include "utility/socket.h"
+#include "cores/wirish_time.h"
 
 extern "C" {
   #include "string.h"
 }
 
-#include "Arduino.h"
 
 #include "Ethernet_STM.h"
 #include "EthernetClient.h"
@@ -76,11 +76,11 @@ size_t EthernetClient::write(uint8_t b) {
 
 size_t EthernetClient::write(const uint8_t *buf, size_t size) {
   if (_sock == MAX_SOCK_NUM) {
-    setWriteError();
+//    setWriteError();
     return 0;
   }
   if (!send(_sock, buf, size)) {
-    setWriteError();
+//    setWriteError();
     return 0;
   }
   return size;

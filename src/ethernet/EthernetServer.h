@@ -1,12 +1,11 @@
 #ifndef ethernetserver_h
 #define ethernetserver_h
 
-#include "Server.h"
+//#include "Server.h"
 
 class EthernetClient;
 
-class EthernetServer : 
-public Server {
+class EthernetServer {
 private:
   uint16_t _port;
   void accept();
@@ -16,7 +15,7 @@ public:
   virtual void begin();
   virtual size_t write(uint8_t);
   virtual size_t write(const uint8_t *buf, size_t size);
-  using Print::write;
+//  using Print::write;
 };
 
 #endif
