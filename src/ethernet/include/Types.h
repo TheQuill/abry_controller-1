@@ -7,6 +7,7 @@
 #ifndef _TYPE_H_
 #define _TYPE_H_
 
+#include <sys/types.h>
 
 /***************************************************
  * attribute for mcu ( types, ... ) 
@@ -91,7 +92,6 @@ typedef volatile unsigned long vuint32;
 typedef uint8			u_char;		/**< 8-bit value */
 typedef uint8 			SOCKET;
 typedef uint16			u_short;	/**< 16-bit value */
-typedef uint16			u_int;		/**< 16-bit value */
 typedef uint32			u_long;		/**< 32-bit value */
 
 typedef union _un_l2cval {

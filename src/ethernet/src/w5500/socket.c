@@ -6,11 +6,11 @@
 *
 */
 //#include "stm32f10x_type.h"
-#include "stm32f10x.h"
+//#include "stm32f10x.h"
 #include "config.h"
 #include "stdio.h"
-#include "W5500\w5500.h"
-#include "W5500\socket.h"
+#include "w5500/w5500.h"
+#include "w5500/socket.h"
 #include "util.h"
 
 static uint16 local_port;

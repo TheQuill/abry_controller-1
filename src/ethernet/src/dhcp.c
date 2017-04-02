@@ -3,10 +3,10 @@
 
 #include "config.h"
 
-#include "device.h"
+//#include "device.h"
 
-#include "socket.h"
-#include "w5500.h"
+#include "w5500/socket.h"
+#include "w5500/w5500.h"
 #include "dhcp.h"
 #include "sockutil.h"
 #include "util.h"//delay
@@ -809,8 +809,8 @@ void init_dhcp_client(void)
   memset(DHCP_SIP,0,sizeof(DHCP_SIP));
   memset(DHCP_REAL_SIP,0,sizeof(GET_SN_MASK));
 
-  iinchip_init();
-  
+//  iinchip_init();  //FIXME: initialize spi?
+
   setSHAR(ConfigMsg.mac);
   setSUBR(ip_0);
   setGAR(ip_0);

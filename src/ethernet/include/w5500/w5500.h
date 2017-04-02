@@ -5,6 +5,8 @@
 #define  _W5500_H_
 
 #include "Types.h"
+#include "stm32f1xx_hal_spi.h"
+
 /**
  @brief Mode Register address
  * W5500 SPI Frame consists of 16bits Offset Address in Address Phase, 
@@ -16,7 +18,7 @@
  * The 8bits Control Phase is reconfigured with Block Select bits (BSB[4:0]), 
  * Read/Write Access Mode bit (RWB) and SPI Operation Mode (OM[1:0]). 
  * Block Select bits select a block as like common register, socket register, tx buffer and tx buffer.
- * Address value is defined as 16bit offset Address, BSB[4:0] and the three bits of zero-padding.(The RWB and OM [1:0] are '0 'padding)
+ * Address value is defined asvoid 16bit offset Address, BSB[4:0] and the three bits of zero-padding.(The RWB and OM [1:0] are '0 'padding)
  * Please, refer to W5500 datasheet for more detail about Memory Map.
  *
  */
@@ -348,7 +350,7 @@ uint16 wiz_write_buf(uint32 addrbsb,uint8* buf,uint16 len);
 uint16 wiz_read_buf(uint32 addrbsb, uint8* buf,uint16 len);
 
 
-void iinchip_init(void); // reset iinchip
+void iinchip_init(SPI_HandleTypeDef * spi_handle); // reset iinchip
 void sysinit(uint8 * tx_size, uint8 * rx_size); // setting tx/rx buf size
 uint8 getISR(uint8 s);
 void putISR(uint8 s, uint8 val);

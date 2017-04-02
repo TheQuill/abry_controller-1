@@ -9,8 +9,8 @@
 
 #include <string.h>
 
-#include "types.h"
-#include "W5500\md5.h"
+//#include "types.h"
+#include "w5500/md5.h"
 #ifndef __DEF_IINCHIP_PPP
 // Constants for Transform routine.
 #define S11    7

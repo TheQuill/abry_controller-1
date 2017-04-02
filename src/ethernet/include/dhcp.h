@@ -8,7 +8,7 @@
 #define EXTERN_DHCP_SN     ConfigMsg.sub
 #define EXTERN_DHCP_GW     ConfigMsg.gw
 #define EXTERN_DHCP_DNS    ConfigMsg.dns
-#define EXTERN_DHCP_NAME   "iweb"//ConfigMsg.domain
+#define EXTERN_DHCP_NAME   "iweb"
 #define EXTERN_DHCP_SIP    ConfigMsg.lip
 
 //#define EXTERN_DHCPBUF        gBUFPUBLIC

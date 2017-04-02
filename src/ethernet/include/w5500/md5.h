@@ -5,6 +5,7 @@
 #ifndef __MD5_H
 #define __MD5_H
 
+#include "Types.h"
 
 /**
  @brief	MD5 context. 

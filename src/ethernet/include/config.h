@@ -1,7 +1,7 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#include "stm32f10x.h"
+//#include "stm32f10x.h"
 #include "Types.h"
 #include "device.h"
 
@@ -117,7 +117,7 @@ typedef struct _CONFIG_MSG
 #define HIGH		1
 #define LOW		0
 
-#define __GNUC__
+//#define __GNUC__
 
 // SRAM address range is 0x2000 0000 ~ 0x2000 BFFF (48KB)
 #define SOCK_BUF_ADDR 	0x20000000

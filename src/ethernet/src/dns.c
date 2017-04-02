@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "stm32f10x.h"
+//#include "stm32f10x.h"
 //#include "delay.h"
 #include "util.h"
-#include "w5200/w5200.h"
-#include "w5200/socket.h"
+#include "w5500/w5500.h"
+#include "w5500/socket.h"
 #include "dns.h"
 #include "sockutil.h"
 
@@ -383,7 +383,7 @@ uint8 dns_query(uint8 s, uint8 * name)
         dns_wait_time++;
         //if(ConfigMsg.debug) printf("dns wait time=%d\r\n", dns_wait_time);
       }
-      if(dns_wait_time >= DNS_RESPONSE_TIMEOUT)   // 3ÃÊ
+      if(dns_wait_time >= DNS_RESPONSE_TIMEOUT)   // 3ï¿½ï¿½
       {
         close(s);
         return DNS_RET_FAIL;

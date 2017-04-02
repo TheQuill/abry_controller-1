@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "types.h"
-#include "W5500\w5500.h"
+#include "Types.h"
+#include "w5500/w5500.h"
 #include "util.h"
 #include "sockutil.h"
 
