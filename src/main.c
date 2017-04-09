@@ -210,7 +210,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCPolynomial = 10;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
@@ -290,6 +290,7 @@ static void MX_TIM1_Init(void)
 /* TIM2 init function */
 static void MX_TIM2_Init(void)
 {
+
   TIM_MasterConfigTypeDef sMasterConfig;
   TIM_OC_InitTypeDef sConfigOC;
 
@@ -528,10 +529,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, uart2_txrx_select_Pin|uart3_txrx_select_Pin|uart1_txrx_select_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, uart2_txrx_select_Pin|uart3_txrx_select_Pin|uart1_txrx_select_Pin|GPIO_PIN_15, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : uart2_txrx_select_Pin uart3_txrx_select_Pin uart1_txrx_select_Pin */
-  GPIO_InitStruct.Pin = uart2_txrx_select_Pin|uart3_txrx_select_Pin|uart1_txrx_select_Pin;
+  /*Configure GPIO pins : uart2_txrx_select_Pin uart3_txrx_select_Pin uart1_txrx_select_Pin PA15 */
+  GPIO_InitStruct.Pin = uart2_txrx_select_Pin|uart3_txrx_select_Pin|uart1_txrx_select_Pin|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
