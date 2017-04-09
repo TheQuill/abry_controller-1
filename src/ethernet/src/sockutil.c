@@ -36,6 +36,24 @@ char* inet_ntoa_pad(unsigned long addr)
 	return addr_str;
 }
 
+uint16 swaps(uint16 i)
+{
+  uint16 ret=0;
+  ret = (i & 0xFF) << 8;
+  ret |= ((i >> 8)& 0xFF);
+  return ret;
+}
+
+uint32 swapl(uint32 l)
+{
+  uint32 ret=0;
+  ret = (l & 0xFF) << 24;
+  ret |= ((l >> 8) & 0xFF) << 16;
+  ret |= ((l >> 16) & 0xFF) << 8;
+  ret |= ((l >> 24) & 0xFF);
+  return ret;
+}
+
 
 /**
 @brief	Verify dotted notation IP address string

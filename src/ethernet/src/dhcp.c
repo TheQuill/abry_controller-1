@@ -10,7 +10,11 @@
 #include "dhcp.h"
 #include "sockutil.h"
 #include "util.h"//delay
-#define DHCP_DEBUG
+//#define DHCP_DEBUG
+
+
+  CONFIG_MSG  ConfigMsg;
+
 
 uint8*  SRC_MAC_ADDR   =  EXTERN_DHCP_MAC;    // Local MAC address
 uint8*   GET_SN_MASK    = EXTERN_DHCP_SN;     // Subnet mask received from the DHCP server

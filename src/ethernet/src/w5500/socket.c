@@ -203,7 +203,9 @@ uint16 send(SOCKET s, const uint8 * buf, uint16 len)
     status = IINCHIP_READ(Sn_SR(s));
     if ((status != SOCK_ESTABLISHED) && (status != SOCK_CLOSE_WAIT) )
     {
+#ifdef IINCHIP_DEBUG
       printf("SEND_OK Problem!!\r\n");
+#endif
       close(s);
       return 0;
     }

@@ -32,6 +32,8 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
+#include "w5500/w5500.h"
+#include "dhcp.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -54,7 +56,7 @@ DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+#define SOCK_DHCP             0
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,6 +89,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  uint8 dhcpret=0;
 
   /* USER CODE END 1 */
 
@@ -112,12 +115,39 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+
+
+//  uint8 txsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
+//  uint8 rxsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
+
+  //public buffer for DHCP, DNS, HTTP
+  uint8 pub_buf[1460];
+
+//  Reset_W5500();
+  iinchip_init(&hspi1);
+  init_dhcp_client();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    dhcpret = check_DHCP_state(SOCK_DHCP);
+    switch(dhcpret)
+    {
+      case DHCP_RET_NONE:
+        break;
+      case DHCP_RET_TIMEOUT:
+        break;
+      case DHCP_RET_UPDATE:
+        break;
+      case DHCP_RET_CONFLICT:
+        while(1);
+      default:
+        break;
+    }
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -175,12 +205,12 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
+  hspi1.Init.CRCPolynomial = 7;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
@@ -260,7 +290,6 @@ static void MX_TIM1_Init(void)
 /* TIM2 init function */
 static void MX_TIM2_Init(void)
 {
-
   TIM_MasterConfigTypeDef sMasterConfig;
   TIM_OC_InitTypeDef sConfigOC;
 

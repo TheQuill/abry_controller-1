@@ -2,7 +2,7 @@
 #define _DHCP_H_
 
 
-
+#include "Types.h"
 
 #define EXTERN_DHCP_MAC    ConfigMsg.mac
 #define EXTERN_DHCP_SN     ConfigMsg.sub
