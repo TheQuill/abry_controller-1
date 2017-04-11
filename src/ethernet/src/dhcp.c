@@ -544,7 +544,7 @@ uint8 check_DHCP_state(SOCKET s)
   {
     if(dhcp_state == STATE_DHCP_READY)
     {
-       //init_dhcp_client();
+       init_dhcp_client();
     #ifdef DHCP_DEBUG			
      printf("state : STATE_DHCP_READY\r\n");
     #endif	   	
@@ -830,3 +830,32 @@ void init_dhcp_client(void)
 }
 
 
+void set_default(void)
+{
+
+  uint8 mac[6]={0x00,0x08,0xdc,0x11,0x11,0x15};
+  uint8 lip[4]={192,168,10,111};
+  uint8 sub[4]={255,255,255,0};
+  uint8 gw[4]={192,168,10,1};
+  uint8 dns[4]={8,8,8,8};
+  memcpy(ConfigMsg.lip, lip, 4);
+  memcpy(ConfigMsg.sub, sub, 4);
+  memcpy(ConfigMsg.gw,  gw, 4);
+  memcpy(ConfigMsg.mac, mac,6);
+  memcpy(ConfigMsg.dns,dns,4);
+  /*
+  uint8 dhcp;
+  uint8 debug;
+
+  uint16 fw_len;
+  uint8 state;
+  */
+  ConfigMsg.dhcp=0;
+  ConfigMsg.debug=1;
+  ConfigMsg.fw_len=0;
+
+  ConfigMsg.state=NORMAL_STATE;
+  ConfigMsg.sw_ver[0]=FW_VER_HIGH;
+  ConfigMsg.sw_ver[1]=FW_VER_LOW;
+
+}

@@ -125,6 +125,7 @@ int main(void)
 
 //  Reset_W5500();
   iinchip_init(&hspi1);
+  set_default();
   init_dhcp_client();
 
   /* USER CODE END 2 */
