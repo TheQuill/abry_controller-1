@@ -1,0 +1,3 @@
+[submodule "wiznet/iolibrary"]
+	path = wiznet/iolibrary
+	url = https://github.com/Wiznet/ioLibrary_Driver.git
