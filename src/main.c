@@ -33,6 +33,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 #include "w5500/w5500.h"
+#include "w5500/socket.h"
 #include "dhcp.h"
 
 /* USER CODE BEGIN Includes */
@@ -56,7 +57,8 @@ DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define SOCK_DHCP             0
+#define SOCK_DHCP   0
+#define SOCKET_UDP    1
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,47 +118,166 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
+  uint8 pc_ip[4]={192,168,1,104};/*ÅäÖÃ·þÎñÆ÷µÄIPµØÖ·*/
+  uint16 pc_port=6001;/*¶¨Òå¼ÆËã»úµÄÒ»¸ö¶Ë¿Ú²¢³õÊ¼»¯*/
+  uint16 len=0;
+  uint8 rIP[4];
+  uint16 rPort;
+  uint8 mac[6]={0x00,0x08,0xdc,0x11,0x11,0x11};/*¶¨ÒåMac±äÁ¿*/
+  uint8 lip[4]={192,168,1,111};/*¶¨Òålp±äÁ¿*/
+  uint8 sub[4]={255,255,255,0};/*¶¨Òåsubnet±äÁ¿*/
+  uint8 gw[4]={192,168,1,1};/*¶¨Òågateway±äÁ¿*/
+  uint8 ip[4];
+  uint8 test[10] = "test";
+  uint32 counter=0;
+  uint8 buffer[2048];
 
+
+//  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
+//  GPIO_Configuration();/* ÅäÖÃGPIO*/
+//  NVIC_Configuration();/* ÅäÖÃÇ¶Ì×ÖÐ¶ÏÏòÁ¿*/
+//
+//   Systick_Init(72);/* ³õÊ¼»¯Systick¹¤×÷Ê±ÖÓ*/
+//   USART1_Init(); /*³õÊ¼»¯´®¿ÚÍ¨ÐÅ:115200@8-n-1*/
+//   at24c16_init();/*³õÊ¼»¯eeprom*/
+//   printf("W5500 EVB initialization over.\r\n");
+//
+//   Reset_W5500();/*Ó²ÖØÆôW5500*/
+//   WIZ_SPI_Init();/*³õÊ¼»¯SPI½Ó¿Ú*/
+    iinchip_init(&hspi1);
+//   printf("W5500 initialized!\r\n");
+
+   setSHAR(mac);/*ÅäÖÃMacµØÖ·*/
+   setSUBR(sub);/*ÅäÖÃ×ÓÍøÑÚÂë*/
+   setGAR(gw);/*ÅäÖÃÄ¬ÈÏÍø¹Ø*/
+   setSIPR(lip);/*ÅäÖÃIpµØÖ·*/
+
+     //Init. TX & RX Memory size of w5500
+   uint8 txsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
+   uint8 rxsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
+
+   sysinit(txsize, rxsize); /*³õÊ¼»¯8¸ösocket*/
+
+   setRTR(2000);/*ÉèÖÃÒç³öÊ±¼äÖµ*/
+   setRCR(3);/*ÉèÖÃ×î´óÖØÐÂ·¢ËÍ´ÎÊý*/
+
+
+   getSIPR (ip);
+   printf("IP : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   getSUBR(ip);
+   printf("SN : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   getGAR(ip);
+   printf("GW : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   printf("Network is ready.\r\n");
+
+   while(1)
+   {
+     switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
+       {
+          case SOCK_UDP:/*socket µÄÌ×½Ó×Ö³õÊ¼»¯Íê³É*/
+            //setSn_IR(0, Sn_IR_RECV);
+            counter++;
+            //sprintf(test, "test:%03d\r\n", counter);
+            //sendto(0, test,10, pc_ip, pc_port);
+            //Delay_ms(100);
+            if(getSn_IR(0) & Sn_IR_RECV)
+           {
+             setSn_IR(0, Sn_IR_RECV);/*Sn_IRµÄµÚ0Î»ÖÃ1*/
+           }
+            if((len=getSn_RX_RSR(0))>0)
+            {
+               //recvfrom(0, buffer, len, pc_ip,&pc_port);/*W5200½ÓÊÕ¼ÆËã»ú·¢ËÍÀ´µÄÊý¾Ý*/
+               recvfrom(0, buffer, len, rIP,&rPort);
+               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
+               sendto(0, buffer,len, pc_ip, pc_port);/*W5200°Ñ½ÓÊÕµ½µÄÊý¾Ý·¢ËÍ¸ø¼ÆËã»ú*/
+             }
+            break;
+          case SOCK_CLOSED:/*socket ¹Ø±Õ*/
+            socket(0,Sn_MR_UDP,30000,0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
+            break;
+        }
+   }
+ }
 //  uint8 txsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
 //  uint8 rxsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
+//
+//
+//  //  Reset_W5500();
+//  iinchip_init(&hspi1);
+//  set_default();
+//  init_dhcp_client();
+//
 
-  //public buffer for DHCP, DNS, HTTP
-  uint8 pub_buf[1460];
+  //init udp
+  //FIXME: create function
 
-//  Reset_W5500();
-  iinchip_init(&hspi1);
-  set_default();
-  init_dhcp_client();
 
-  /* USER CODE END 2 */
+  //Init. TX & RX Memory size of w5500
+//  sysinit(txsize, rxsize); /*³õÊ¼»¯8¸ösocket*/
+//  setRTR(2000);
+//  setRCR(3);
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    dhcpret = check_DHCP_state(SOCK_DHCP);
-    switch(dhcpret)
-    {
-      case DHCP_RET_NONE:
-        break;
-      case DHCP_RET_TIMEOUT:
-        break;
-      case DHCP_RET_UPDATE:
-        break;
-      case DHCP_RET_CONFLICT:
-        while(1);
-      default:
-        break;
-    }
-
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-
-  }
-  /* USER CODE END 3 */
-
-}
+//  /* USER CODE END 2 */
+//
+//  /* Infinite loop */
+//  /* USER CODE BEGIN WHILE */
+//  while (1)
+//  {
+//
+//    uint16 len=0;
+//    uint8 rIP[4];
+//    uint16 rPort;
+//    uint8 buffer[2048];
+//
+//    dhcpret = check_DHCP_state(SOCK_DHCP);
+//    switch(dhcpret)
+//    {
+//      case DHCP_RET_NONE:
+//        switch (getSn_SR(SOCKET_UDP))
+//        /*»ñÈ¡socket 0µÄ×´Ì¬*/
+//        {
+//        case SOCK_UDP:/*socket µÄÌ×½Ó×Ö³õÊ¼»¯Íê³É*/
+//          //setSn_IR(0, Sn_IR_RECV);
+//    //      counter++;
+//          //sprintf(test, "test:%03d\r\n", counter);
+//          //sendto(0, test,10, pc_ip, pc_port);
+//          //Delay_ms(100);
+//          if (getSn_IR(SOCKET_UDP) & Sn_IR_RECV)
+//          {
+//            setSn_IR(SOCKET_UDP, Sn_IR_RECV);/*Sn_IRµÄµÚ0Î»ÖÃ1*/
+//          }
+//          if ((len = getSn_RX_RSR(SOCKET_UDP)) != 0)
+//          {
+//            //recvfrom(0, buffer, len, pc_ip,&pc_port);/*W5200½ÓÊÕ¼ÆËã»ú·¢ËÍÀ´µÄÊý¾Ý*/
+//            recvfrom(SOCKET_UDP, buffer, len, rIP, &rPort);
+//            printf("%d.%d.%d.%d:%d", rIP[0], rIP[1], rIP[2], rIP[3], rPort);
+//            sendto(SOCKET_UDP, buffer, len, rIP, rPort);/*W5200°Ñ½ÓÊÕµ½µÄÊý¾Ý·¢ËÍ¸ø¼ÆËã»ú*/
+//          }
+//          break;
+//        case SOCK_CLOSED:/*socket ¹Ø±Õ*/
+//          socket(SOCKET_UDP, Sn_MR_UDP, 3000, 0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
+//          break;
+//        }
+//        break;
+//      case DHCP_RET_TIMEOUT:
+//        break;
+//      case DHCP_RET_UPDATE:
+//        break;
+//      case DHCP_RET_CONFLICT:
+//        while(1);
+//      default:
+//        break;
+//    }
+//
+//
+//  /* USER CODE END WHILE */
+//
+//  /* USER CODE BEGIN 3 */
+//
+//  }
+//  /* USER CODE END 3 */
+//
+//}
 
 /** System Clock Configuration
 */
