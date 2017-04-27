@@ -9,6 +9,8 @@
 #define __SOCKUTIL_H
 
 
+#include "Types.h"
+
 #define NO_USE_SOCKUTIL_FUNC
 
 char* inet_ntoa(unsigned long addr);			/* Convert 32bit Address into Dotted Decimal Format */
