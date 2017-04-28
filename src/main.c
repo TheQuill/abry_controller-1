@@ -35,6 +35,8 @@
 #include "w5500/w5500.h"
 #include "w5500/socket.h"
 #include "dhcp.h"
+#include "E131_interface.h"
+#include <string.h>
 
 /* USER CODE BEGIN Includes */
 
@@ -59,6 +61,12 @@ DMA_HandleTypeDef hdma_usart3_tx;
 /* Private variables ---------------------------------------------------------*/
 #define SOCK_DHCP   0
 #define SOCKET_UDP    1
+
+#define DMX_START_UNIVERSE  1
+#define DMX_NR_OF_UNIVERSES 1
+#define DMX_CHANNELS_PER_UNIVERSE 512
+#define DATA_BUFFER_SIZE 512
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,6 +129,8 @@ int main(void)
   uint8 pc_ip[4]={192,168,1,104};/*ÅäÖÃ·þÎñÆ÷µÄIPµØÖ·*/
   uint16 pc_port=6001;/*¶¨Òå¼ÆËã»úµÄÒ»¸ö¶Ë¿Ú²¢³õÊ¼»¯*/
   uint16 len=0;
+  uint16_t datalen=0;
+  uint16_t universe =0;
   uint8 rIP[4];
   uint16 rPort;
   uint8 mac[6]={0x00,0x08,0xdc,0x11,0x11,0x11};/*¶¨ÒåMac±äÁ¿*/
@@ -130,9 +140,11 @@ int main(void)
   uint8 ip[4];
   uint8 test[10] = "test";
   uint32 counter=0;
-  uint8 buffer[2048];
+  uint8 buffer[1024] = {42};
+  E131Handle E131Parser = create_E131();
 
 
+  memset(buffer,42,1024);
 //  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
 //  GPIO_Configuration();/* ÅäÖÃGPIO*/
 //  NVIC_Configuration();/* ÅäÖÃÇ¶Ì×ÖÐ¶ÏÏòÁ¿*/
@@ -187,13 +199,35 @@ int main(void)
             if((len=getSn_RX_RSR(0))>0)
             {
                //recvfrom(0, buffer, len, pc_ip,&pc_port);/*W5200½ÓÊÕ¼ÆËã»ú·¢ËÍÀ´µÄÊý¾Ý*/
-               recvfrom(0, buffer, len, rIP,&rPort);
-               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
-               sendto(0, buffer,len, pc_ip, pc_port);/*W5200°Ñ½ÓÊÕµ½µÄÊý¾Ý·¢ËÍ¸ø¼ÆËã»ú*/
+               if (len <= E131_PACKET_SIZE)
+               {
+                 //fill parser buffer
+                 recvfrom(0, E131_getBuffer(E131Parser), len, rIP,&rPort);
+
+               }
+               else
+               {
+                 recvfrom(0, E131_getBuffer(E131Parser), E131_PACKET_SIZE, rIP,&rPort);
+               }
+               //parsepacket
+               datalen = E131_parsePacket(E131Parser);
+               universe = E131_getUniverse(E131Parser);
+
+               //copy data to showbuffer
+               if((universe >= DMX_START_UNIVERSE) && (universe < (DMX_START_UNIVERSE + DMX_NR_OF_UNIVERSES)))
+               {
+                 memcpy(&buffer, E131_getData(E131Parser),datalen);
+               }
+
+
+
+               //all data received? -> update leds.
+
+//               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
              }
             break;
           case SOCK_CLOSED:/*socket ¹Ø±Õ*/
-            socket(0,Sn_MR_UDP,30000,0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
+            socket(0,Sn_MR_UDP,5568,0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
             break;
         }
    }

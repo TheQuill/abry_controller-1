@@ -20,7 +20,9 @@
 #ifndef E131_H_
 #define E131_H_
 
+extern "C"{
 #include "sockutil.h"
+}
 #include <string.h>
 
 /* Network interface detection.  WiFi for ESP8266 and Ethernet for AVR */
