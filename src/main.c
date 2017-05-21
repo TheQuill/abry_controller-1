@@ -37,6 +37,7 @@
 #include "dhcp.h"
 #include "E131_interface.h"
 #include <string.h>
+#include "abry_config.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -66,6 +67,8 @@ DMA_HandleTypeDef hdma_usart3_tx;
 #define DMX_NR_OF_UNIVERSES 1
 #define DMX_CHANNELS_PER_UNIVERSE 512
 #define DATA_BUFFER_SIZE 512
+
+abry_config configuration;
 
 /* USER CODE END PV */
 
@@ -100,6 +103,30 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
   uint8 dhcpret=0;
+
+
+  //config input
+  configuration.input.type = DMX;
+  configuration.input.input_device = 0;
+  configuration.input.start = 1;
+  configuration.input.count = 1;
+  //config device 1
+  configuration.outputs[0].type = OT_WS2811;
+  configuration.outputs[0].channel_start = 0;
+  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+  //config device 2
+  configuration.outputs[1].type = OT_WS2811;
+  configuration.outputs[0].channel_start = 150;
+  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+  //config other devices
+  configuration.outputs[2].type = OT_OFF;
+  configuration.outputs[3].type = OT_OFF;
+  configuration.outputs[4].type = OT_OFF;
+  configuration.outputs[5].type = OT_OFF;
+  configuration.outputs[6].type = OT_OFF;
+
+
+
 
   /* USER CODE END 1 */
 
@@ -214,7 +241,7 @@ int main(void)
                universe = E131_getUniverse(E131Parser);
 
                //copy data to showbuffer
-               if((universe >= DMX_START_UNIVERSE) && (universe < (DMX_START_UNIVERSE + DMX_NR_OF_UNIVERSES)))
+               if((universe >= configuration.input.start) && (universe < (configuration.input.start + configuration.input.count)))
                {
                  memcpy(&buffer, E131_getData(E131Parser),datalen);
                }
