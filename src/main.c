@@ -32,8 +32,6 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-#include "w5500/w5500.h"
-#include "dhcp.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -46,6 +44,10 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+DMA_HandleTypeDef hdma_tim1_ch2;
+DMA_HandleTypeDef hdma_tim2_ch1;
+DMA_HandleTypeDef hdma_tim3_ch1_trig;
+DMA_HandleTypeDef hdma_tim4_ch1;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -56,7 +58,7 @@ DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define SOCK_DHCP             0
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,7 +91,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  uint8 dhcpret=0;
 
   /* USER CODE END 1 */
 
@@ -115,39 +116,12 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-
-
-//  uint8 txsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
-//  uint8 rxsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
-
-  //public buffer for DHCP, DNS, HTTP
-  uint8 pub_buf[1460];
-
-//  Reset_W5500();
-  iinchip_init(&hspi1);
-  init_dhcp_client();
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    dhcpret = check_DHCP_state(SOCK_DHCP);
-    switch(dhcpret)
-    {
-      case DHCP_RET_NONE:
-        break;
-      case DHCP_RET_TIMEOUT:
-        break;
-      case DHCP_RET_UPDATE:
-        break;
-      case DHCP_RET_CONFLICT:
-        while(1);
-      default:
-        break;
-    }
-
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -499,12 +473,24 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
   /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
   /* DMA1_Channel7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
