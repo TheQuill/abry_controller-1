@@ -30,19 +30,19 @@ typedef union {
 
 
 typedef struct {
-  uint32_t current_led;
-  uint32_t total_led;
-  uint8_t (*color_led)[3];
+  uint32_t current_led;         //runtime
+  uint32_t total_led;           //runtime
+  uint8_t (*color_led)[3];      //runtime
 
-  uint32_t DMAChannel;
-  uint32_t DMACaptureCompare;
-  led_dma_buffer buffer;
-  TIM_HandleTypeDef *TimerPtr;
+  uint32_t DMAChannel;          //config
+  uint32_t DMACaptureCompare;   //config
+  led_dma_buffer buffer;        //runtime
+  TIM_HandleTypeDef *TimerPtr;  //config
 
 }Ws2812DmaAdmin;
 
 static void fillLed(uint8_t *buffer, uint8_t *color);
-void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin admin);
-void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin admin);
+void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin);
+void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin);
 
 #endif /* WS2812_H_ */

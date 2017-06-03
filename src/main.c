@@ -38,6 +38,7 @@
 #include "E131_interface.h"
 #include <string.h>
 #include "abry_config.h"
+#include "ws2812.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -63,6 +64,7 @@ DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart3_tx;
 
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 #define SOCK_DHCP   0
@@ -72,6 +74,9 @@ DMA_HandleTypeDef hdma_usart3_tx;
 #define DMX_NR_OF_UNIVERSES 1
 #define DMX_CHANNELS_PER_UNIVERSE 512
 #define DATA_BUFFER_SIZE 512
+
+Ws2812DmaAdmin Ws2812DmaAdminDevice1;
+Ws2812DmaAdmin Ws2812DmaAdminDevice2;
 
 abry_config configuration;
 
@@ -96,6 +101,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void ws2812DmaIsrDev1(DMA_HandleTypeDef *hdma);
+void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma);
 
 /* USER CODE END PFP */
 
@@ -119,10 +126,14 @@ int main(void)
   configuration.outputs[0].type = OT_WS2811;
   configuration.outputs[0].channel_start = 0;
   configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+
+
   //config device 2
   configuration.outputs[1].type = OT_WS2811;
-  configuration.outputs[0].channel_start = 150;
-  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+  configuration.outputs[1].channel_start = 150;
+  configuration.outputs[1].channel_count = 150; //(50 rgb pixels)
+  Ws2812DmaAdmin Ws2812DmaAdminDevice2;
+
   //config other devices
   configuration.outputs[2].type = OT_OFF;
   configuration.outputs[3].type = OT_OFF;
@@ -254,6 +265,8 @@ int main(void)
 
 
                //all data received? -> update leds.
+              ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+//               ws2812Send(buffer[configuration.outputs[1].channel_start], configuration.outputs[1].channel_count, &Ws2812DmaAdminDevice2);
 
 //               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
              }
@@ -417,7 +430,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 0;
+  htim1.Init.Period = 0x5A;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
@@ -683,6 +696,19 @@ static void MX_USART3_UART_Init(void)
   */
 static void MX_DMA_Init(void) 
 {
+  Ws2812DmaAdminDevice1.DMAChannel = DMA1_Channel2;
+  Ws2812DmaAdminDevice1.TimerPtr = &htim1;
+  Ws2812DmaAdminDevice1.DMACaptureCompare = TIM_DMA_CC2;
+
+  Ws2812DmaAdminDevice2.DMAChannel = DMA1_Channel1;
+  Ws2812DmaAdminDevice2.TimerPtr = &htim2;
+  Ws2812DmaAdminDevice2.DMACaptureCompare = TIM_DMA_CC1;
+
+  hdma_tim1_ch2.XferCpltCallback = ws2812DmaIsrDev1;
+  hdma_tim1_ch2.XferHalfCpltCallback = ws2812DmaIsrDev1;
+  hdma_tim2_ch1.XferCpltCallback = ws2812DmaIsrDev2;
+  hdma_tim2_ch1.XferHalfCpltCallback = ws2812DmaIsrDev2;
+
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -740,6 +766,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+void ws2812DmaIsrDev1(DMA_HandleTypeDef *hdma)
+{
+  ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice1);
+}
+
+void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma)
+{
+  ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice2);
+}
 
 /* USER CODE END 4 */
 
