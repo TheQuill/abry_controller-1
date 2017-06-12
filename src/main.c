@@ -135,7 +135,7 @@ int main(void)
   //config device 1
   configuration.outputs[0].type = OT_WS2811;
   configuration.outputs[0].channel_start = 0;
-  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+  configuration.outputs[0].channel_count = 1; //(50 rgb pixels)
 
 
   //config device 2
@@ -172,9 +172,9 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-//  MX_USART1_UART_Init();
-//  MX_USART2_UART_Init();
-//  MX_USART3_UART_Init();
+  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -193,11 +193,11 @@ int main(void)
   uint8 ip[4];
   uint8 test[10] = "test";
   uint32 counter=0;
-  uint8 buffer[1024] = {42};
+  uint8 buffer[1024] = {0};
   E131Handle E131Parser = create_E131();
 
 
-  memset(buffer,42,1024);
+  memset(buffer,4,1024);
 //  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
 //  GPIO_Configuration();/* ÅäÖÃGPIO*/
 //  NVIC_Configuration();/* ÅäÖÃÇ¶Ì×ÖÐ¶ÏÏòÁ¿*/
@@ -228,71 +228,69 @@ int main(void)
 
 
    getSIPR (ip);
-//   printf("IP : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   printf("IP : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
    getSUBR(ip);
-//   printf("SN : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   printf("SN : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
    getGAR(ip);
-//   printf("GW : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
-//   printf("Network is ready.\r\n");
+   printf("GW : %d.%d.%d.%d\r\n", ip[0],ip[1],ip[2],ip[3]);
+   printf("Network is ready.\r\n");
 
-   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+
+   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+   ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+
 
    while(1)
    {
-     HAL_Delay(100);
-     if(pwm_value == 0) step = 1;
-     if(pwm_value == 100) step = -1;
-     pwm_value += step;
-     user_pwm_setvalue(pwm_value);
 
-//     switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
-//       {
-//          case SOCK_UDP:/*socket µÄÌ×½Ó×Ö³õÊ¼»¯Íê³É*/
-//            //setSn_IR(0, Sn_IR_RECV);
-//            counter++;
-//            //sprintf(test, "test:%03d\r\n", counter);
-//            //sendto(0, test,10, pc_ip, pc_port);
-//            //Delay_ms(100);
-//            if(getSn_IR(0) & Sn_IR_RECV)
-//           {
-//             setSn_IR(0, Sn_IR_RECV);/*Sn_IRµÄµÚ0Î»ÖÃ1*/
-//           }
-//            if((len=getSn_RX_RSR(0))>0)
-//            {
-//               //recvfrom(0, buffer, len, pc_ip,&pc_port);/*W5200½ÓÊÕ¼ÆËã»ú·¢ËÍÀ´µÄÊý¾Ý*/
-//               if (len <= E131_PACKET_SIZE)
-//               {
-//                 //fill parser buffer
-//                 recvfrom(0, E131_getBuffer(E131Parser), len, rIP,&rPort);
-//
-//               }
-//               else
-//               {
-//                 recvfrom(0, E131_getBuffer(E131Parser), E131_PACKET_SIZE, rIP,&rPort);
-//               }
-//               //parsepacket
-//               datalen = E131_parsePacket(E131Parser);
-//               universe = E131_getUniverse(E131Parser);
-//
-//               //copy data to showbuffer
-//               if((universe >= configuration.input.start) && (universe < (configuration.input.start + configuration.input.count)))
-//               {
-//                 memcpy(&buffer, E131_getData(E131Parser),datalen);
-//               }
-//
-//
-//
-//               //all data received? -> update leds.
-//              ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
-////               ws2812Send(buffer[configuration.outputs[1].channel_start], configuration.outputs[1].channel_count, &Ws2812DmaAdminDevice2);
-//
-////               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
-//             }
-//            break;
-//          case SOCK_CLOSED:/*socket ¹Ø±Õ*/
-//            socket(0,Sn_MR_UDP,5568,0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
-//            break;
-//        }
+     switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
+       {
+          case SOCK_UDP:/*socket µÄÌ×½Ó×Ö³õÊ¼»¯Íê³É*/
+            //setSn_IR(0, Sn_IR_RECV);
+            counter++;
+            //sprintf(test, "test:%03d\r\n", counter);
+            //sendto(0, test,10, pc_ip, pc_port);
+            //Delay_ms(100);
+            if(getSn_IR(0) & Sn_IR_RECV)
+           {
+             setSn_IR(0, Sn_IR_RECV);/*Sn_IRµÄµÚ0Î»ÖÃ1*/
+           }
+            if((len=getSn_RX_RSR(0))>0)
+            {
+               //recvfrom(0, buffer, len, pc_ip,&pc_port);/*W5200½ÓÊÕ¼ÆËã»ú·¢ËÍÀ´µÄÊý¾Ý*/
+               if (len <= E131_PACKET_SIZE)
+               {
+                 //fill parser buffer
+                 recvfrom(0, E131_getBuffer(E131Parser), len, rIP,&rPort);
+
+               }
+               else
+               {
+                 recvfrom(0, E131_getBuffer(E131Parser), E131_PACKET_SIZE, rIP,&rPort);
+               }
+               //parsepacket
+               datalen = E131_parsePacket(E131Parser);
+               universe = E131_getUniverse(E131Parser);
+
+               //copy data to showbuffer
+               if((universe >= configuration.input.start) && (universe < (configuration.input.start + configuration.input.count)))
+               {
+                 memcpy(&buffer, E131_getData(E131Parser),datalen);
+               }
+
+
+
+               //all data received? -> update leds.
+              ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+//               ws2812Send(buffer[configuration.outputs[1].channel_start], configuration.outputs[1].channel_count, &Ws2812DmaAdminDevice2);
+
+//               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);
+             }
+            break;
+          case SOCK_CLOSED:/*socket ¹Ø±Õ*/
+            socket(0,Sn_MR_UDP,5568,0);/*³õÊ¼»¯socket 0µÄÌ×½Ó×Ö*/
+            break;
+        }
    }
  }
 //  uint8 txsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};
@@ -450,10 +448,10 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 100-1;
+  htim1.Init.Period = 0x64;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim1.Init.RepetitionCounter = 1;
-  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  htim1.Init.RepetitionCounter = 0;
+  if (HAL_TIM_Base_Init(&htim1) !=HAL_OK)
   {
     Error_Handler();
   }
@@ -477,10 +475,10 @@ static void MX_TIM1_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 10;
+  sConfigOC.Pulse = 50;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -488,7 +486,8 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
 
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 //  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
@@ -767,7 +766,7 @@ static void MX_USART3_UART_Init(void)
   */
 static void MX_DMA_Init(void) 
 {
-  Ws2812DmaAdminDevice1.DMAChannel = DMA1_Channel2;
+  Ws2812DmaAdminDevice1.DMAChannel = TIM_CHANNEL_2;
   Ws2812DmaAdminDevice1.TimerPtr = &htim1;
   Ws2812DmaAdminDevice1.DMACaptureCompare = TIM_DMA_CC2;
 

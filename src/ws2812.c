@@ -13,15 +13,15 @@ static void fillLed(uint8_t *buffer, uint8_t *color)
 
     for(i=0; i<8; i++) // RED data
     {
-        buffer[i] = ((color[0]<<i) & 0x80)?55:26;
+        buffer[i] = ((color[0]<<i) & 0x80)?80:50;
     }
     for(i=0; i<8; i++) // GREEN
     {
-        buffer[8+i] = ((color[1]<<i) & 0x80)?55:26;
+        buffer[8+i] = ((color[1]<<i) & 0x80)?50:80;
     }
     for(i=0; i<8; i++) // BLUE
     {
-        buffer[16+i] = ((color[2]<<i) & 0x80)?55:26;
+        buffer[16+i] = ((color[2]<<i) & 0x80)?80:50;
     }
 }
 
@@ -56,8 +56,8 @@ void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin)
 //  DMA_Cmd(DMA1_Channel2, ENABLE);             // enable DMA channel 2
 //  __HAL_DMA_ENABLE(&hdma_tim1_ch2);
 //  HAL_DMA_Start_IT(htim1.hdma[TIM_DMA_ID_CC2],(uint32_t)&led_dma.buffer, (uint32_t)&TIM1->CCR2, len);
-    HAL_TIM_PWM_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
-
+//    HAL_TIM_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
+    HAL_TIMEx_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
    // Go!!!
     __HAL_TIM_ENABLE_DMA(admin->TimerPtr, admin->DMACaptureCompare);
 }
@@ -70,7 +70,8 @@ void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin)
 
     if (admin->total_led == 0)
     {
-        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+//        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+        HAL_TIMEx_PWMN_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
 //        TIM_Cmd(TIM1, DISABLE);
 //      DMA_Cmd(DMA1_Channel2, DISABLE);
     }
@@ -97,7 +98,8 @@ void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin)
 
 //      TIM_Cmd(TIM1, DISABLE);                     // disable Timer 1
 //      DMA_Cmd(DMA1_Channel2, DISABLE);            // disable DMA channel 2
-        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+//        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+        HAL_TIMEx_PWMN_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
 
         admin->total_led = 0;
     }
