@@ -135,7 +135,7 @@ int main(void)
   //config device 1
   configuration.outputs[0].type = OT_WS2811;
   configuration.outputs[0].channel_start = 0;
-  configuration.outputs[0].channel_count = 1; //(50 rgb pixels)
+  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
 
 
   //config device 2
@@ -197,7 +197,7 @@ int main(void)
   E131Handle E131Parser = create_E131();
 
 
-  memset(buffer,4,1024);
+  memset(buffer,50,1024);
 //  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
 //  GPIO_Configuration();/* ÅäÖÃGPIO*/
 //  NVIC_Configuration();/* ÅäÖÃÇ¶Ì×ÖÐ¶ÏÏòÁ¿*/
@@ -236,12 +236,26 @@ int main(void)
    printf("Network is ready.\r\n");
 
 
-   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+//   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); //start pwm for debugging purpose (timing)
    ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
 
-
+   int i = 0;
    while(1)
    {
+     HAL_Delay(100);
+     memset(buffer,0,1024);
+     buffer[3*i] = 00;
+     buffer[3*i+1] = 00;
+     buffer[3*i+2] = 50;
+     ++i;
+     if (i> 50)
+     {
+       i = 0;
+     }
+     ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+
+
 
      switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
        {
@@ -281,7 +295,7 @@ int main(void)
 
 
                //all data received? -> update leds.
-              ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+              ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count / 3), &Ws2812DmaAdminDevice1);
 //               ws2812Send(buffer[configuration.outputs[1].channel_start], configuration.outputs[1].channel_count, &Ws2812DmaAdminDevice2);
 
 //               printf("%d.%d.%d.%d:%d", rIP[0],rIP[1],rIP[2],rIP[3],rPort);

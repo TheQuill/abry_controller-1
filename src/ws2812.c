@@ -13,19 +13,19 @@ static void fillLed(uint8_t *buffer, uint8_t *color)
 
     for(i=0; i<8; i++) // RED data
     {
-        buffer[i] = ((color[0]<<i) & 0x80)?80:50;
+        buffer[i] = ((color[0]<<i) & 0x80)?55:26;
     }
     for(i=0; i<8; i++) // GREEN
     {
-        buffer[8+i] = ((color[1]<<i) & 0x80)?50:80;
+        buffer[8+i] = ((color[1]<<i) & 0x80)?55:26;
     }
     for(i=0; i<8; i++) // BLUE
     {
-        buffer[16+i] = ((color[2]<<i) & 0x80)?80:50;
+        buffer[16+i] = ((color[2]<<i) & 0x80)?55:26;
     }
 }
 
-void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin)
+void ws2812Send(uint8_t *(color[3]), int len, Ws2812DmaAdmin *admin)
 {
     int i;
     if(len<1) return;
@@ -59,7 +59,8 @@ void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin)
 //    HAL_TIM_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
     HAL_TIMEx_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
    // Go!!!
-    __HAL_TIM_ENABLE_DMA(admin->TimerPtr, admin->DMACaptureCompare);
+//    __HAL_DMA_ENABLE_IT
+//    __HAL_TIM_ENABLE_DMA(admin->TimerPtr, admin->DMACaptureCompare);
 }
 
 void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin)
