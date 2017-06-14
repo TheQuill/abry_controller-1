@@ -25,7 +25,7 @@ static void fillLed(uint8_t *buffer, uint8_t *color)
     }
 }
 
-void ws2812Send(uint8_t *(color[3]), int len, Ws2812DmaAdmin *admin)
+void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin)
 {
     int i;
     if(len<1) return;

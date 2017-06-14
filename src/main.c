@@ -130,11 +130,11 @@ int main(void)
   //config input
   configuration.input.type = DMX;
   configuration.input.input_device = 0;
-  configuration.input.start = 1;
+  configuration.input.start = 2;
   configuration.input.count = 1;
   //config device 1
   configuration.outputs[0].type = OT_WS2811;
-  configuration.outputs[0].channel_start = 0;
+  configuration.outputs[0].channel_start = 131;
   configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
 
 
@@ -197,7 +197,7 @@ int main(void)
   E131Handle E131Parser = create_E131();
 
 
-  memset(buffer,50,1024);
+  memset(buffer,0,1024);
 //  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
 //  GPIO_Configuration();/* ÅäÖÃGPIO*/
 //  NVIC_Configuration();/* ÅäÖÃÇ¶Ì×ÖÐ¶ÏÏòÁ¿*/
@@ -238,23 +238,23 @@ int main(void)
 
 
 //   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); //start pwm for debugging purpose (timing)
-   ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
+   ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count/3), &Ws2812DmaAdminDevice1);
 
    int i = 0;
    while(1)
    {
-     HAL_Delay(100);
-     memset(buffer,0,1024);
-     buffer[3*i] = 00;
-     buffer[3*i+1] = 00;
-     buffer[3*i+2] = 50;
-     ++i;
-     if (i> 50)
-     {
-       i = 0;
-     }
-     ws2812Send(&(buffer[configuration.outputs[0].channel_start]), configuration.outputs[0].channel_count, &Ws2812DmaAdminDevice1);
-
+//     HAL_Delay(100);
+//     memset(buffer,0,1024);
+//     buffer[3*i] = 00;
+//     buffer[3*i+1] = 00;
+//     buffer[3*i+2] = 50;
+//     ++i;
+//     if (i> 50)
+//     {
+//       i = 0;
+//     }
+//     ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count / 3), &Ws2812DmaAdminDevice1);
+//
 
 
      switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
