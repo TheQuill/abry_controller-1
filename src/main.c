@@ -73,9 +73,12 @@ DMA_HandleTypeDef hdma_usart3_tx;
 #define DMX_CHANNELS_PER_UNIVERSE 512
 #define DATA_BUFFER_SIZE 512
 
+#define STM32_UUID ((uint32_t *)UID_BASE)
+
 Ws2812DmaAdmin Ws2812DmaAdminDevice1;
 Ws2812DmaAdmin Ws2812DmaAdminDevice2;
 
+abry_hw_config hw_configuration;
 abry_config configuration;
 
 /* USER CODE END PV */
@@ -101,6 +104,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* Private function prototypes -----------------------------------------------*/
 void ws2812DmaIsrDev1(DMA_HandleTypeDef *hdma);
 void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma);
+uint32_t determineTimerPeriod(uint8_t timer);
 
 /* USER CODE END PFP */
 
@@ -126,30 +130,67 @@ int main(void)
   uint16_t pwm_value;
   uint16_t step;
 
+  uint32_t id = STM32_UUID[0];
+
+  //create hw config
+  hw_configuration.outputs[0].allowed_types = OT_PWM;
+  hw_configuration.outputs[0].device = 11;
+  hw_configuration.outputs[1].allowed_types = OT_PWM + OT_WS2811;
+  hw_configuration.outputs[1].device = 12;
+  hw_configuration.outputs[2].allowed_types = OT_PWM;
+  hw_configuration.outputs[2].device = 13;
+  hw_configuration.outputs[3].allowed_types = OT_PWM;
+  hw_configuration.outputs[3].device = 14;
+  hw_configuration.outputs[4].allowed_types = OT_PWM + OT_WS2811;
+  hw_configuration.outputs[4].device = 21;
+  hw_configuration.outputs[5].allowed_types = OT_PWM;
+  hw_configuration.outputs[5].device = 22;
+  hw_configuration.outputs[6].allowed_types = OT_PWM + OT_WS2811;
+  hw_configuration.outputs[6].device = 31;
+  hw_configuration.outputs[7].allowed_types = OT_PWM;
+  hw_configuration.outputs[7].device = 32;
+  hw_configuration.outputs[8].allowed_types = OT_PWM;
+  hw_configuration.outputs[8].device = 33;
+  hw_configuration.outputs[9].allowed_types = OT_PWM;
+  hw_configuration.outputs[9].device = 34;
+  hw_configuration.outputs[10].allowed_types = OT_PWM + OT_WS2811;
+  hw_configuration.outputs[10].device = 41;
+  hw_configuration.outputs[11].allowed_types = OT_PWM;
+  hw_configuration.outputs[11].device = 42;
+  hw_configuration.outputs[12].allowed_types = OT_PWM;
+  hw_configuration.outputs[12].device = 43;
+  hw_configuration.outputs[13].allowed_types = OT_PWM;
+  hw_configuration.outputs[13].device = 44;
+  hw_configuration.outputs[14].allowed_types = OT_UART;
+  hw_configuration.outputs[14].device = 1;
+  hw_configuration.outputs[15].allowed_types = OT_UART;
+  hw_configuration.outputs[15].device = 2;
+  hw_configuration.outputs[16].allowed_types = OT_UART;
+  hw_configuration.outputs[16].device = 3;
 
   //config input
   configuration.input.type = DMX;
   configuration.input.input_device = 0;
-  configuration.input.start = 2;
+  configuration.input.start = 1;
   configuration.input.count = 1;
+
+  //clear config
+  for (int ii = 0; ii < NR_OF_OUTPUTS; ++ii)
+  {
+    configuration.outputs[ii].type = OT_OFF;
+  }
+
   //config device 1
   configuration.outputs[0].type = OT_WS2811;
-  configuration.outputs[0].channel_start = 131;
+  configuration.outputs[0].channel_start = 0;
   configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
 
-
   //config device 2
-  configuration.outputs[1].type = OT_WS2811;
+  configuration.outputs[1].type = OT_OFF;
   configuration.outputs[1].channel_start = 150;
-  configuration.outputs[1].channel_count = 150; //(50 rgb pixels)
-  Ws2812DmaAdmin Ws2812DmaAdminDevice2;
+  configuration.outputs[1].channel_count = 1; //(1 pwm output)
 
-  //config other devices
-  configuration.outputs[2].type = OT_OFF;
-  configuration.outputs[3].type = OT_OFF;
-  configuration.outputs[4].type = OT_OFF;
-  configuration.outputs[5].type = OT_OFF;
-  configuration.outputs[6].type = OT_OFF;
+
 
 
 
@@ -187,7 +228,7 @@ int main(void)
   uint8 rIP[4];
   uint16 rPort;
   uint8 mac[6]={0x00,0x08,0xdc,0x11,0x11,0x11};/*¶¨ÒåMac±äÁ¿*/
-  uint8 lip[4]={192,168,1,111};/*¶¨Òålp±äÁ¿*/
+  uint8 lip[4]={192,168,1,114};/*¶¨Òålp±äÁ¿*/
   uint8 sub[4]={255,255,255,0};/*¶¨Òåsubnet±äÁ¿*/
   uint8 gw[4]={192,168,1,1};/*¶¨Òågateway±äÁ¿*/
   uint8 ip[4];
@@ -197,6 +238,7 @@ int main(void)
   E131Handle E131Parser = create_E131();
 
 
+  //clear receive buffer
   memset(buffer,0,1024);
 //  RCC_Configuration(); /* ÅäÖÃµ¥Æ¬»úÏµÍ³Ê±ÖÓ*/
 //  GPIO_Configuration();/* ÅäÖÃGPIO*/
@@ -237,25 +279,13 @@ int main(void)
 
 
 
-//   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); //start pwm for debugging purpose (timing)
+   //set all outputs to off.
    ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count/3), &Ws2812DmaAdminDevice1);
 
-   int i = 0;
    while(1)
    {
-//     HAL_Delay(100);
-//     memset(buffer,0,1024);
-//     buffer[3*i] = 00;
-//     buffer[3*i+1] = 00;
-//     buffer[3*i+2] = 50;
-//     ++i;
-//     if (i> 50)
-//     {
-//       i = 0;
-//     }
-//     ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count / 3), &Ws2812DmaAdminDevice1);
-//
 
+     //Try to read from ethernet
 
      switch(getSn_SR(0))/*»ñÈ¡socket 0µÄ×´Ì¬*/
        {
@@ -462,7 +492,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 0x64;
+  htim1.Init.Period = determineTimerPeriod(1);
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   if (HAL_TIM_Base_Init(&htim1) !=HAL_OK)
@@ -858,6 +888,44 @@ void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma)
   ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice2);
 }
 
+uint32_t determineTimerPeriod(uint8_t timer)
+{
+  uint8_t ii;
+  uint8_t start_range = timer * 10;
+  uint8_t end_range = start_range + 9;
+  abry_output_type last_output = OT_OFF;
+  uint32_t timer_period = 0x64;
+
+  for(ii = 0; ii < NR_OF_OUTPUTS; ++ii)
+  {
+    if((hw_configuration.outputs[ii].device >= start_range) &&
+        (hw_configuration.outputs[ii].device <= end_range))
+    {
+      switch(last_output)
+      {
+      case OT_PWM:
+        if(configuration.outputs[ii].type == OT_WS2811)
+        {
+          timer_period = 0xFF;
+        }
+        break;
+      case OT_WS2811:
+         if(configuration.outputs[ii].type == OT_PWM)
+         {
+           timer_period = 0xFF;
+         }
+         break;
+      case OT_OFF:
+      case OT_UART:
+      default:
+        last_output = configuration.outputs[ii].type;
+        break;
+       }
+    }
+  }
+  return timer_period;
+;
+}
 /* USER CODE END 4 */
 
 /**
