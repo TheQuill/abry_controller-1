@@ -40,6 +40,7 @@ typedef enum
 typedef struct
 {
   abry_output_type type;
+  uint8_t buffer_number;
   uint16_t  channel_start;
   uint16_t  channel_count;
 } abry_outputconfig;
@@ -59,7 +60,6 @@ typedef struct
 typedef struct
 {
   abry_input_type type;
-  uint8_t   input_device; //don't care als spi, anders uart number for input.
   uint16_t  start; //start universe if dmx, start channel if abrynet
   uint16_t  count; //aantal universes or number of channels of abrynet.
 } abry_inputconfig;
