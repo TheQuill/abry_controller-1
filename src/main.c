@@ -326,7 +326,7 @@ int main(void)
         //copy data to showbuffer
         if((universe >= configuration.input.start) && (universe < (configuration.input.start + configuration.input.count)))
         {
-          memcpy(&buffer, E131_getData(E131Parser),datalen);
+          memcpy(&(buffer[(universe - configuration.input.start) * 512]), E131_getData(E131Parser),datalen);
         }
 
 
@@ -950,7 +950,7 @@ void sendOutputs()
       break;
     case OT_WS2811:
 
-      ws2812Send(&(buffer[configuration.outputs[outputcounter].channel_start]), (configuration.outputs[outputcounter].channel_count / 3), &Ws2812DmaAdminDevice1);
+      ws2812Send(&(buffer[configuration.outputs[outputcounter].channel_start - 1]), (configuration.outputs[outputcounter].channel_count / 3), &Ws2812DmaAdminDevice1);
 
       break;
     case OT_UART:
