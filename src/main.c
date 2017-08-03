@@ -115,7 +115,7 @@ void sendOutputs();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-void user_pwm_setvalue(uint16_t value)
+void user_pwm_setvalue(uint16_t value, TIM_HandleTypeDef *htim, uint32_t channel )
 {
     TIM_OC_InitTypeDef sConfigOC;
 
@@ -123,8 +123,8 @@ void user_pwm_setvalue(uint16_t value)
     sConfigOC.Pulse = value;
 //    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 //    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2);
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+    HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, channel);
+    HAL_TIMEx_PWMN_Start(htim, channel); //FIXME: use correct call for inverted and non inverted pwm signals
 }
 /* USER CODE END 0 */
 
@@ -139,10 +139,10 @@ int main(void)
   uint32_t id = STM32_UUID[0];
 
   //create hw config
-  hw_configuration.outputs[0].allowed_types = OT_PWM;
-  hw_configuration.outputs[0].device = 11;
-  hw_configuration.outputs[1].allowed_types = OT_PWM + OT_WS2811;
-  hw_configuration.outputs[1].device = 12;
+  hw_configuration.outputs[0].allowed_types = OT_PWM + OT_WS2811;
+  hw_configuration.outputs[0].device = 12;
+  hw_configuration.outputs[1].allowed_types = OT_PWM;
+  hw_configuration.outputs[1].device = 11;
   hw_configuration.outputs[2].allowed_types = OT_PWM;
   hw_configuration.outputs[2].device = 13;
   hw_configuration.outputs[3].allowed_types = OT_PWM;
@@ -176,7 +176,6 @@ int main(void)
 
   //config input
   configuration.input.type = DMX;
-  configuration.input.input_device = 0;
   configuration.input.start = 1;
   configuration.input.count = 1;
 
@@ -187,14 +186,14 @@ int main(void)
   }
 
   //config device 1
-  configuration.outputs[0].type = OT_WS2811;
+//  configuration.outputs[0].type = OT_WS2811;
+//  configuration.outputs[0].channel_start = 0;
+//  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
+//
+//  //config device 2
+  configuration.outputs[0].type = OT_PWM;
   configuration.outputs[0].channel_start = 0;
-  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
-
-  //config device 2
-  configuration.outputs[1].type = OT_OFF;
-  configuration.outputs[1].channel_start = 150;
-  configuration.outputs[1].channel_count = 1; //(1 pwm output)
+  configuration.outputs[0].channel_count = 1; //(1 pwm output)
 
 
 
@@ -905,48 +904,74 @@ uint32_t determineTimerPeriod(uint8_t timer)
   uint8_t ii;
   uint8_t start_range = timer * 10;
   uint8_t end_range = start_range + 9;
-  abry_output_type last_output = OT_OFF;
-  uint32_t timer_period = 0x64;
+  uint32_t timer_period = 0x64; //asume high speed
 
-  for(ii = 0; ii < NR_OF_OUTPUTS; ++ii)
+  for (ii = 0; ii < NR_OF_OUTPUTS; ++ii)
   {
-    if((hw_configuration.outputs[ii].device >= start_range) &&
-        (hw_configuration.outputs[ii].device <= end_range))
+    if ((hw_configuration.outputs[ii].device >= start_range)
+        && (hw_configuration.outputs[ii].device <= end_range))
     {
-      switch(last_output)
+      if (configuration.outputs[ii].type == OT_PWM)
       {
-      case OT_PWM:
-        if(configuration.outputs[ii].type == OT_WS2811)
-        {
-          timer_period = 0xFF;
-        }
-        break;
-      case OT_WS2811:
-         if(configuration.outputs[ii].type == OT_PWM)
-         {
-           timer_period = 0xFF;
-         }
-         break;
-      case OT_OFF:
-      case OT_UART:
-      default:
-        last_output = configuration.outputs[ii].type;
-        break;
-       }
+        //at least one pwm, so set to low speed.
+        timer_period = 0xFF;
+      }
     }
   }
   return timer_period;
-;
 }
 
 void sendOutputs()
 {
   uint8_t outputcounter;
+  TIM_HandleTypeDef *timerhandle;
+  uint32_t channel;
+
   for (outputcounter = 0 ; outputcounter < NR_OF_OUTPUTS; ++outputcounter)
   {
     switch (configuration.outputs[outputcounter].type)
     {
     case OT_PWM:
+      //determine timer and channel
+
+      switch (hw_configuration.outputs[outputcounter].device % 10)
+      {
+      case 1:
+        channel = TIM_CHANNEL_1;
+        break;
+      case 2:
+        channel = TIM_CHANNEL_2;
+        break;
+      case 3:
+        channel = TIM_CHANNEL_3;
+        break;
+      case 4:
+        channel = TIM_CHANNEL_4;
+        break;
+      default:
+          break;
+      }
+      if (hw_configuration.outputs[outputcounter].device < 20)
+      {
+        timerhandle = &htim1;
+      }
+      else if (hw_configuration.outputs[outputcounter].device < 30)
+      {
+        timerhandle = &htim2;
+      }
+      else if (hw_configuration.outputs[outputcounter].device < 40)
+      {
+        timerhandle = &htim3;
+      }
+      else
+      {
+        timerhandle = &htim4;
+      }
+
+
+      //set value
+      uint16_t value = buffer[configuration.outputs[outputcounter].channel_start];
+      user_pwm_setvalue(value, timerhandle, channel);
       break;
     case OT_WS2811:
 
