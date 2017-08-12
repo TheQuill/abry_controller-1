@@ -117,31 +117,20 @@ void sendOutputs();
 /* USER CODE BEGIN 0 */
 void user_pwm_setvalue(uint16_t value, TIM_HandleTypeDef *htim, uint32_t channel )
 {
-    uint16_t compare_value;
-
-    //use negative pwm in case of timer1 and channel 2 and channel 3.
-    if ((htim == &htim1) && ((channel == TIM_CHANNEL_2) || (channel == TIM_CHANNEL_3)))
-    {
-        compare_value = 0xFF - value;
-    }
-    else
-    {
-      compare_value = value;
-    }
 
     switch(channel)
     {
     case TIM_CHANNEL_1:
-        htim->Instance->CCR1 = compare_value;
+        htim->Instance->CCR1 = value;
         break;
     case TIM_CHANNEL_2:
-        htim->Instance->CCR2 = compare_value;
+        htim->Instance->CCR2 = value;
         break;
     case TIM_CHANNEL_3:
-        htim->Instance->CCR3 = compare_value;
+        htim->Instance->CCR3 = value;
         break;
     case TIM_CHANNEL_4:
-        htim->Instance->CCR4 = compare_value;
+        htim->Instance->CCR4 = value;
         break;
     default:
         //do nothing
