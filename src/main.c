@@ -117,14 +117,36 @@ void sendOutputs();
 /* USER CODE BEGIN 0 */
 void user_pwm_setvalue(uint16_t value, TIM_HandleTypeDef *htim, uint32_t channel )
 {
-    TIM_OC_InitTypeDef sConfigOC;
+    uint16_t compare_value;
 
-    sConfigOC.OCMode = TIM_OCMODE_PWM1;
-    sConfigOC.Pulse = value;
-//    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-//    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    HAL_TIM_PWM_ConfigChannel(htim, &sConfigOC, channel);
-    HAL_TIMEx_PWMN_Start(htim, channel); //FIXME: use correct call for inverted and non inverted pwm signals
+    //use negative pwm in case of timer1 and channel 2 and channel 3.
+    if ((htim == &htim1) && ((channel == TIM_CHANNEL_2) || (channel == TIM_CHANNEL_3)))
+    {
+        compare_value = 0xFF - value;
+    }
+    else
+    {
+      compare_value = value;
+    }
+
+    switch(channel)
+    {
+    case TIM_CHANNEL_1:
+        htim->Instance->CCR1 = compare_value;
+        break;
+    case TIM_CHANNEL_2:
+        htim->Instance->CCR2 = compare_value;
+        break;
+    case TIM_CHANNEL_3:
+        htim->Instance->CCR3 = compare_value;
+        break;
+    case TIM_CHANNEL_4:
+        htim->Instance->CCR4 = compare_value;
+        break;
+    default:
+        //do nothing
+        break;
+    }
 }
 /* USER CODE END 0 */
 
@@ -190,11 +212,15 @@ int main(void)
 //  configuration.outputs[0].channel_start = 0;
 //  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
 //
-//  //config device 2
+  //config device 1
   configuration.outputs[0].type = OT_PWM;
   configuration.outputs[0].channel_start = 0;
   configuration.outputs[0].channel_count = 1; //(1 pwm output)
 
+  //config device 2
+  configuration.outputs[1].type = OT_PWM;
+  configuration.outputs[1].channel_start = 1;
+  configuration.outputs[1].channel_count = 1; //(1 pwm output)
 
 
 
@@ -285,8 +311,16 @@ int main(void)
 
 
 
-  //set all outputs to off.
+  //initialize  all outputs to off.
   ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count/3), &Ws2812DmaAdminDevice1);
+
+
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+//  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+//  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+
 
   while(1)
   {
@@ -933,7 +967,6 @@ void sendOutputs()
     {
     case OT_PWM:
       //determine timer and channel
-
       switch (hw_configuration.outputs[outputcounter].device % 10)
       {
       case 1:
@@ -968,7 +1001,6 @@ void sendOutputs()
         timerhandle = &htim4;
       }
 
-
       //set value
       uint16_t value = buffer[configuration.outputs[outputcounter].channel_start];
       user_pwm_setvalue(value, timerhandle, channel);
@@ -976,7 +1008,6 @@ void sendOutputs()
     case OT_WS2811:
 
       ws2812Send(&(buffer[configuration.outputs[outputcounter].channel_start - 1]), (configuration.outputs[outputcounter].channel_count / 3), &Ws2812DmaAdminDevice1);
-
       break;
     case OT_UART:
       //send header (head mbv dma en interupt versturen?)
