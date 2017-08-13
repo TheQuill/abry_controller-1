@@ -233,6 +233,7 @@
 									<listOptionValue builtIn="false" value="&quot;../system/include/cmsis&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../system/include/stm32f1-stdperiph&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../system/include/cmsis/device&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/abry_controller/src/ethernet/include}&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.996565250" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="STM32F10X_MD"/>
@@ -359,6 +360,9 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.37675076;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.37675076.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.987855207;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1775620882">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.1896174811;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.1896174811.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1651922378;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.2113675346">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
