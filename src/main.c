@@ -79,6 +79,8 @@ DMA_HandleTypeDef hdma_usart3_tx;
 
 Ws2812DmaAdmin Ws2812DmaAdminDevice1;
 Ws2812DmaAdmin Ws2812DmaAdminDevice2;
+Ws2812DmaAdmin Ws2812DmaAdminDevice3;
+Ws2812DmaAdmin Ws2812DmaAdminDevice4;
 
 abry_hw_config hw_configuration;
 abry_config configuration;
@@ -109,6 +111,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* Private function prototypes -----------------------------------------------*/
 void ws2812DmaIsrDev1(DMA_HandleTypeDef *hdma);
 void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma);
+void ws2812DmaIsrDev3(DMA_HandleTypeDef *hdma);
+void ws2812DmaIsrDev4(DMA_HandleTypeDef *hdma);
 uint32_t determineTimerPeriod(uint8_t timer);
 void sendOutputs();
 
@@ -301,11 +305,12 @@ int main(void)
 
 
   //initialize  all outputs to off.
-  ws2812Send(&(buffer[configuration.outputs[0].channel_start]), (configuration.outputs[0].channel_count/3), &Ws2812DmaAdminDevice1);
+  //TODO: op basis van config maken
+  ws2812Send(&(buffer[configuration.outputs[0].channel_start - 1]), (configuration.outputs[0].channel_count / 3), &Ws2812DmaAdminDevice1);
+  ws2812Send(&(buffer[configuration.outputs[4].channel_start - 1]), (configuration.outputs[4].channel_count / 3), &Ws2812DmaAdminDevice2);
 
-
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+//  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+//  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
 //  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 //  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
@@ -602,7 +607,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = determineTimerPeriod(2);
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
@@ -656,7 +661,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
+  htim3.Init.Period = determineTimerPeriod(3);
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
@@ -720,7 +725,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 0;
+  htim4.Init.Period = determineTimerPeriod(4);
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
   {
@@ -838,15 +843,27 @@ static void MX_DMA_Init(void)
   Ws2812DmaAdminDevice1.DMAChannel = TIM_CHANNEL_2;
   Ws2812DmaAdminDevice1.TimerPtr = &htim1;
   Ws2812DmaAdminDevice1.DMACaptureCompare = TIM_DMA_CC2;
-
-  Ws2812DmaAdminDevice2.DMAChannel = DMA1_Channel1;
-  Ws2812DmaAdminDevice2.TimerPtr = &htim2;
-  Ws2812DmaAdminDevice2.DMACaptureCompare = TIM_DMA_CC1;
-
   hdma_tim1_ch2.XferCpltCallback = ws2812DmaIsrDev1;
   hdma_tim1_ch2.XferHalfCpltCallback = ws2812DmaIsrDev1;
+
+  Ws2812DmaAdminDevice2.DMAChannel = TIM_CHANNEL_1;
+  Ws2812DmaAdminDevice2.TimerPtr = &htim2;
+  Ws2812DmaAdminDevice2.DMACaptureCompare = TIM_DMA_CC1;
   hdma_tim2_ch1.XferCpltCallback = ws2812DmaIsrDev2;
   hdma_tim2_ch1.XferHalfCpltCallback = ws2812DmaIsrDev2;
+
+  Ws2812DmaAdminDevice3.DMAChannel = TIM_CHANNEL_1;
+  Ws2812DmaAdminDevice3.TimerPtr = &htim3;
+  Ws2812DmaAdminDevice3.DMACaptureCompare = TIM_DMA_CC1;
+  hdma_tim3_ch1_trig.XferCpltCallback = ws2812DmaIsrDev3;
+  hdma_tim3_ch1_trig.XferHalfCpltCallback = ws2812DmaIsrDev3;
+
+  Ws2812DmaAdminDevice4.DMAChannel = TIM_CHANNEL_1;
+  Ws2812DmaAdminDevice4.TimerPtr = &htim4;
+  Ws2812DmaAdminDevice4.DMACaptureCompare = TIM_DMA_CC1;
+  hdma_tim4_ch1.XferCpltCallback = ws2812DmaIsrDev4;
+  hdma_tim4_ch1.XferHalfCpltCallback = ws2812DmaIsrDev4;
+
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
@@ -916,6 +933,16 @@ void ws2812DmaIsrDev2(DMA_HandleTypeDef *hdma)
 {
   ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice2);
 }
+void ws2812DmaIsrDev3(DMA_HandleTypeDef *hdma)
+{
+  ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice3);
+}
+
+void ws2812DmaIsrDev4(DMA_HandleTypeDef *hdma)
+{
+  ws2812DmaIsr(hdma, &Ws2812DmaAdminDevice4);
+}
+
 
 /**
  * Determine if full or low speed is needed for the ws2811 output.
@@ -950,7 +977,7 @@ void sendOutputs()
   TIM_HandleTypeDef *timerhandle;
   uint32_t channel;
 
-  for (outputcounter = 0 ; outputcounter < NR_OF_OUTPUTS; ++outputcounter)
+  for (outputcounter = 0; outputcounter < NR_OF_OUTPUTS; ++outputcounter)
   {
     switch (configuration.outputs[outputcounter].type)
     {
@@ -971,7 +998,7 @@ void sendOutputs()
         channel = TIM_CHANNEL_4;
         break;
       default:
-          break;
+        break;
       }
       if (hw_configuration.outputs[outputcounter].device < 20)
       {
@@ -991,13 +1018,35 @@ void sendOutputs()
       }
 
       //set value
-      uint16_t value = buffer[configuration.outputs[outputcounter].channel_start];
+      uint16_t value =
+          buffer[configuration.outputs[outputcounter].channel_start];
       user_pwm_setvalue(value, timerhandle, channel);
       break;
     case OT_WS2811:
+    {
+      Ws2812DmaAdmin * dmaAdmin;
+      if (hw_configuration.outputs[outputcounter].device < 20)
+      {
+        dmaAdmin = &Ws2812DmaAdminDevice1;
+      }
+      else if (hw_configuration.outputs[outputcounter].device < 30)
+      {
+        dmaAdmin = &Ws2812DmaAdminDevice2;
+      }
+      else if (hw_configuration.outputs[outputcounter].device < 40)
+      {
+        dmaAdmin = &Ws2812DmaAdminDevice3;
+      }
+      else
+      {
+        dmaAdmin = &Ws2812DmaAdminDevice4;
+      }
 
-      ws2812Send(&(buffer[configuration.outputs[outputcounter].channel_start - 1]), (configuration.outputs[outputcounter].channel_count / 3), &Ws2812DmaAdminDevice1);
+      ws2812Send(
+          &(buffer[configuration.outputs[outputcounter].channel_start - 1]),
+          (configuration.outputs[outputcounter].channel_count / 3), dmaAdmin);
       break;
+    }
     case OT_UART:
       //send header (head mbv dma en interupt versturen?)
       //send data mbv dma
