@@ -13,15 +13,15 @@ static void fillLed(uint8_t *buffer, uint8_t *color)
 
     for(i=0; i<8; i++) // RED data
     {
-        buffer[i] = ((color[0]<<i) & 0x80)?55:26;
+        buffer[i] = ((color[0]<<i) & 0x80)?65:26;
     }
     for(i=0; i<8; i++) // GREEN
     {
-        buffer[8+i] = ((color[1]<<i) & 0x80)?55:26;
+        buffer[8+i] = ((color[1]<<i) & 0x80)?65:26;
     }
     for(i=0; i<8; i++) // BLUE
     {
-        buffer[16+i] = ((color[2]<<i) & 0x80)?55:26;
+        buffer[16+i] = ((color[2]<<i) & 0x80)?65:26;
     }
 }
 
