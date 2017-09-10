@@ -206,14 +206,14 @@ int main(void)
 //  configuration.outputs[0].channel_count = 150; //(50 rgb pixels)
 //
   //config device 1
-  configuration.outputs[0].type = OT_PWM;
-  configuration.outputs[0].channel_start = 0;
-  configuration.outputs[0].channel_count = 1; //(1 pwm output)
+  configuration.outputs[0].type = OT_WS2811;
+  configuration.outputs[0].channel_start = 1;
+  configuration.outputs[0].channel_count = 150; //(50 ledpixels)
 
-  //config device 2
-  configuration.outputs[1].type = OT_PWM;
-  configuration.outputs[1].channel_start = 1;
-  configuration.outputs[1].channel_count = 1; //(1 pwm output)
+//  //config device 2
+  configuration.outputs[4].type = OT_WS2811;
+  configuration.outputs[4].channel_start = 151;
+  configuration.outputs[4].channel_count = 150; //(50 ledpixels output)
 
 
 

@@ -52,29 +52,33 @@ void ws2812Send(uint8_t (*color)[3], int len, Ws2812DmaAdmin *admin)
             bzero(admin->buffer.end+(24*i), 24);
     }
 
-//  DMA1_Channel2->CNDTR = sizeof(led_dma.buffer); // load number of bytes to be transferred
-//  DMA_Cmd(DMA1_Channel2, ENABLE);             // enable DMA channel 2
-//  __HAL_DMA_ENABLE(&hdma_tim1_ch2);
-//  HAL_DMA_Start_IT(htim1.hdma[TIM_DMA_ID_CC2],(uint32_t)&led_dma.buffer, (uint32_t)&TIM1->CCR2, len);
-//    HAL_TIM_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
-    HAL_TIMEx_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
-   // Go!!!
-//    __HAL_DMA_ENABLE_IT
-//    __HAL_TIM_ENABLE_DMA(admin->TimerPtr, admin->DMACaptureCompare);
+    if ((admin->DMAChannel == TIM_CHANNEL_2) && (admin->TimerPtr->Instance == TIM1))
+    {
+      HAL_TIMEx_PWMN_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
+    }
+    else
+    {
+      HAL_TIM_PWM_Start_DMA(admin->TimerPtr, admin->DMAChannel, (uint32_t *)admin->buffer.buffer, sizeof(admin->buffer.buffer));
+    }
 }
 
 void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin)
 {
-//    portBASE_TYPE xHigherPriorityTaskWoken;
     uint8_t * buffer;
     int i;
 
     if (admin->total_led == 0)
     {
-//        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+      if ((admin->DMAChannel == TIM_CHANNEL_2) && (admin->TimerPtr->Instance == TIM1))
+      {
         HAL_TIMEx_PWMN_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
-//        TIM_Cmd(TIM1, DISABLE);
-//      DMA_Cmd(DMA1_Channel2, DISABLE);
+      }
+      else
+      {
+        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+      }
+
+      admin->total_led = 0;
     }
 
     if (hdma->State == HAL_DMA_STATE_READY_HALF)
@@ -94,13 +98,16 @@ void ws2812DmaIsr(DMA_HandleTypeDef *hdma, Ws2812DmaAdmin *admin)
             bzero(buffer+(24*i), 24);
     }
     admin->current_led++;
-    if (admin->current_led >= admin->total_led+2) {
-//        xSemaphoreGiveFromISR(allLedDone, &xHigherPriorityTaskWoken);
-
-//      TIM_Cmd(TIM1, DISABLE);                     // disable Timer 1
-//      DMA_Cmd(DMA1_Channel2, DISABLE);            // disable DMA channel 2
-//        HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
-        HAL_TIMEx_PWMN_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+    if (admin->current_led >= admin->total_led+2)
+    {
+        if ((admin->DMAChannel == TIM_CHANNEL_2) && (admin->TimerPtr->Instance == TIM1))
+        {
+          HAL_TIMEx_PWMN_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+        }
+        else
+        {
+          HAL_TIM_PWM_Stop_DMA(admin->TimerPtr, admin->DMAChannel);
+        }
 
         admin->total_led = 0;
     }
